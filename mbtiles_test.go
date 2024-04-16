@@ -34,6 +34,36 @@ func Test_FindMBtiles(t *testing.T) {
 	}
 }
 
+func Test_FindWithExt(t *testing.T) {
+	var expected = []string{
+		"testdata/geography-class-jpg.db",
+		"testdata/geography-class-png",
+	}
+
+	filenames, err := FindWithExt("./testdata", ".db")
+	if err != nil {
+		t.Error("Could not list mbtiles files in testdata directory")
+	}
+	filenames_blank, err := FindWithExt("./testdata", "")
+	if err != nil {
+		t.Error("Could not list mbtiles files in testdata directory")
+	}
+	filenames = append(filenames, filenames_blank...)
+
+	found := 0
+
+	for _, expectedFilename := range expected {
+		for _, filename := range filenames {
+			if filename == expectedFilename {
+				found++
+			}
+		}
+	}
+	if found != len(expected) {
+		t.Error("Did not list all expected mbtiles files in testdata directory")
+	}
+}
+
 func Test_FindMBtiles_invalid_dir(t *testing.T) {
 	// non-existing directory should fail with an error
 	_, err := FindMBtiles("./invalid")

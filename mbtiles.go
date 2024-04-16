@@ -47,6 +47,32 @@ func FindMBtiles(path string) ([]string, error) {
 	return filenames, err
 }
 
+func FindWithExt(path, ext string) ([]string, error) {
+	var filenames []string
+	err := filepath.Walk(path, func(p string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if p == path {
+			return nil
+		}
+		// Ignore any that have an associated -journal file; these are incomplete
+		if _, err := os.Stat(p + "-journal"); err == nil {
+			return nil
+		}
+
+		if file_ext := filepath.Ext(p); file_ext == ext {
+			filenames = append(filenames, p)
+
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return filenames, err
+}
+
 // Open opens an MBtiles file for reading, and validates that it has the correct
 // structure.
 func Open(path string) (*MBtiles, error) {
