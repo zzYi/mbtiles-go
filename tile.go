@@ -9,13 +9,14 @@ import (
 
 // TileFormat defines the tile format of tiles an mbtiles file.  Supported image
 // formats:
-//   * PNG
-//   * JPG
-//   * WEBP
-//   * PBF  (vector tile protocol buffers)
+//   - PNG
+//   - JPG
+//   - WEBP
+//   - PBF  (vector tile protocol buffers)
+//
 // Tiles may be compressed, in which case the type is one of:
-//   * GZIP (assumed to be GZIP'd PBF data)
-//   * ZLIB
+//   - GZIP (assumed to be GZIP'd PBF data)
+//   - ZLIB
 type TileFormat uint8
 
 // TileFormat enum values
@@ -27,6 +28,7 @@ const (
 	JPG
 	PBF
 	WEBP
+	MVT
 )
 
 // String returns a string representing the TileFormat.
@@ -42,6 +44,8 @@ func (t TileFormat) String() string {
 		return "webp"
 	case GZIP:
 		return "gzip"
+	case MVT:
+		return "mvt"
 	default:
 		return ""
 	}
@@ -58,6 +62,8 @@ func (t TileFormat) MimeType() string {
 		return "application/x-protobuf" // Content-Encoding header must be gzip
 	case WEBP:
 		return "image/webp"
+	case MVT:
+		return "application/vnd.mapbox-vector-tile"
 	default:
 		return ""
 	}
@@ -72,6 +78,7 @@ var formatPrefixes = map[TileFormat][]byte{
 	// but none of the other RIFF file formats are likely to be stored
 	// as tiles.
 	WEBP: []byte("\x52\x49\x46\x46"),
+	MVT:  []byte("\x1A"),
 }
 
 // detectFileFormat inspects the first few bytes of byte array to determine tile
@@ -98,6 +105,8 @@ func detectTileSize(format TileFormat, data []byte) (uint32, error) {
 		return 512, nil
 	case PBF:
 		return 512, nil
+	case MVT:
+		return 256, nil
 	case PNG:
 		// read the width from the IHDR chunk of the PNG
 		if len(data) < 20 {
